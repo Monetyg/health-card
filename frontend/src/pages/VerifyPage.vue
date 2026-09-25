@@ -1,11 +1,11 @@
 <template>
   <div class="verify">
     <h2>扫码查验（免登录）</h2>
-    <p class="sub">查验码：{{ verifyId }}</p>
+    <p class="sub">查验码：{{ verifyId }} · {{ channel }}</p>
     <div v-if="loading">加载中…</div>
     <div v-else-if="err" class="err">
       <van-empty :description="err" />
-      <p class="hint">可能原因：扫的是录入页“待签发”预览码；后端重启数据丢失；手机与电脑不在同一 WiFi / 后端没启动。</p>
+      <p class="hint">可能原因：扫的是录入页“待签发”预览码；二维码3天已过期被删除；云函数地址未配置。</p>
     </div>
     <div v-else-if="d" class="card">
       <div class="title">{{ d.regionName }}食品从业人员健康证明</div>
@@ -22,38 +22,33 @@
         </div>
         <img :src="photoSrc" class="photo" @error="imgErr = true" />
       </div>
-      <p v-if="imgErr" class="hint">照片加载失败：{{ d.photoUrl }}（确认后端 :3000 已启动且手机能访问）</p>
+      <p v-if="imgErr" class="hint">照片加载失败：{{ d.photoUrl }}</p>
       <p class="wm">查验时间 {{ d.verifyTime }}</p>
     </div>
   </div>
 </template>
 <script setup lang="ts">
 /**
- * 查验页：加载/报错/缺图全状态展示，避免扫进去一片空白
+ * 查验页：微信内走 callFunction，非微信走云函数 HTTP 触发
  */
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
+import { fetchVerifyInfo, isWechat } from '../cloud/verify';
 const route = useRoute();
 const verifyId = String(route.params.id || '');
 const d = ref<any>(null);
 const err = ref('');
 const loading = ref(true);
 const imgErr = ref(false);
-/** 照片相对地址转绝对，手机扫 LAN-IP 也能加载 */
-const photoSrc = computed(() => {
-  const u: string = d.value?.photoUrl || '';
-  if (!u) return '';
-  if (/^https?:\/\//.test(u)) return u;
-  return `${location.origin}${u}`;
-});
+/** 当前通道展示，方便排查 */
+const channel = computed(() => (isWechat() ? '微信云函数通道' : 'HTTPS 通道'));
+/** photoUrl 已是 COS 公开 CDN HTTPS 链接，直接加载 */
+const photoSrc = computed(() => d.value?.photoUrl || '');
 onMounted(async () => {
   try {
-    const r = await fetch(`/api/verify/${verifyId}`);
-    const j = await r.json();
-    if (!r.ok) err.value = j.msg || '查验失败';
-    else d.value = j;
+    d.value = await fetchVerifyInfo(verifyId);
   } catch (e: any) {
-    err.value = '网络异常，后端不可达：' + (e?.message || e);
+    err.value = e?.message || '查验失败';
   } finally {
     loading.value = false;
   }
