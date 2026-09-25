@@ -1,7 +1,7 @@
 <template>
   <div class="cert-wrap">
     <div ref="shotRef" class="shot">
-      <div class="card">
+      <div class="card front">
         <div class="card-title">{{ tpl.frontTitle }}</div>
         <div class="cert-no">编号：{{ cert.certNo || '—' }}</div>
         <div class="card-row">
@@ -26,19 +26,18 @@
         <div class="qr-box">
           <canvas ref="qr" width="220" height="220"></canvas>
           <div class="qr-no">{{ cert.certNo || '' }}</div>
-          <div class="qr-link">{{ verifyLink }}</div>
         </div>
       </div>
     </div>
     <div class="actions">
-      <van-button type="primary" block @click="save">保存图片</van-button>
+      <van-button type="primary" block @click="save">保存图片（9:16）</van-button>
       <van-button block @click="print">打印</van-button>
     </div>
   </div>
 </template>
 <script setup lang="ts">
 /**
- * 证面二维码修复：可配局域网IP/域名 + 220px高容错 + 白底描边防模糊
+ * 证面长图：9:16 竖版，移动端满屏，保存即 1080x1920
  */
 import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import QRCode from 'qrcode';
@@ -59,48 +58,55 @@ const examDate = computed(() => {
   if (isNaN(+d)) return props.cert?.validText || '—';
   return `${d.getFullYear()}年${String(d.getMonth() + 1).padStart(2, '0')}月${String(d.getDate()).padStart(2, '0')}日`;
 });
-/** 查验链接走可配 BaseUrl，解决手机扫 localhost 打不开 */
 const verifyLink = computed(() => {
   const id = props.cert?.verifyId || `preview-${props.cert?.certNo || 'demo'}`;
   try { return buildVerifyLink(id); } catch { return `/v/${id}`; }
 });
-/** 高清晰二维码：220px + margin 2 + 容错 M */
+/** 二维码 180px 适配 9:16 下半屏，保证可扫 */
 async function drawQr() {
   await nextTick();
   if (!qr.value) return;
   try {
-    await QRCode.toCanvas(qr.value, verifyLink.value, { width: 220, margin: 2, errorCorrectionLevel: 'M' });
+    await QRCode.toCanvas(qr.value, verifyLink.value, { width: 180, margin: 2, errorCorrectionLevel: 'M' });
   } catch (e) { console.error(e); }
 }
 onMounted(drawQr);
 watch([() => props.cert?.verifyId, () => props.cert?.certNo], drawQr);
+/**
+ * 保存 9:16 长图：固定 1080x1920 导出
+ */
 async function save() {
-  const c = await html2canvas(shotRef.value as HTMLElement, { backgroundColor: '#fff', scale: 3 });
+  const c = await html2canvas(shotRef.value as HTMLElement, { backgroundColor: '#fff', scale: 2, width: 540, height: 960, windowWidth: 540 });
   const a = document.createElement('a');
   a.href = c.toDataURL('image/png');
-  a.download = (props.cert?.certNo || 'health-cert') + '.png';
+  a.download = (props.cert?.certNo || 'health-cert') + '-9x16.png';
   a.click();
 }
 function print() { window.print(); }
 </script>
 <style scoped>
-.cert-wrap { background: #fff; padding: 12px; }
-.card { position: relative; overflow: hidden; border: 2px solid #111; border-radius: 14px; padding: 14px 14px 18px; margin-bottom: 12px; background: #fff; }
-.card-title { text-align: center; font-size: 19px; margin-bottom: 4px; }
-.cert-no { text-align: center; font-size: 13px; color: #333; margin-bottom: 10px; }
-.card-row { display: flex; justify-content: space-between; gap: 10px; }
-.card-left { font-size: 15px; line-height: 1.9; flex: 1; }
-.gender { margin-left: 32px; }
-.small { font-size: 14px; color: #333; }
-.photo { width: 108px; height: 148px; object-fit: cover; border: 1px solid #eee; }
+/* 移动优先：外层满宽，证图居中限 430px */
+.cert-wrap { background: #f2f2f2; padding: 12px 12px 20px; min-height: 100vh; box-sizing: border-box; }
+/* 核心：9:16 竖版，三段纵向排布 */
+.shot { aspect-ratio: 9 / 16; width: 100%; max-width: 430px; margin: 0 auto; background: #fff; display: flex; flex-direction: column; padding: 3cqw; box-sizing: border-box; overflow: hidden; container-type: inline-size; }
+.card { position: relative; overflow: hidden; border: 2px solid #111; border-radius: 12px; padding: 10px 10px 12px; background: #fff; }
+.front { flex: 5.2; margin-bottom: 8px; }
+.back { flex: 4; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; }
+.card-title { text-align: center; font-size: clamp(14px, 4.4cqw, 19px); margin-bottom: 2px; }
+.cert-no { text-align: center; font-size: clamp(10px, 3.2cqw, 13px); color: #333; margin-bottom: 6px; }
+.card-row { display: flex; justify-content: space-between; gap: 8px; }
+.card-left { font-size: clamp(11px, 3.6cqw, 15px); line-height: 1.85; flex: 1; }
+.gender { margin-left: 20px; }
+.small { font-size: clamp(10px, 3.3cqw, 14px); color: #333; }
+.photo { width: clamp(72px, 26cqw, 108px); height: clamp(100px, 36cqw, 148px); object-fit: cover; border: 1px solid #eee; }
 .photo.empty { display: flex; align-items: center; justify-content: center; background: #f5f5f5; color: #999; font-size: 12px; }
-.wm { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(0,0,0,.07); font-size: 18px; transform: rotate(-35deg); pointer-events: none; white-space: nowrap; }
-.back { min-height: 260px; display: flex; align-items: center; justify-content: center; }
-.back-title { font-size: 30px; line-height: 1.6; text-align: center; }
-.qr-row { display: flex; justify-content: center; padding: 8px 0 4px; }
-.qr-box { text-align: center; background: #fff; padding: 10px; border: 1px solid #eee; }
-.qr-box canvas { image-rendering: pixelated; }
-.qr-no { font-size: 12px; margin-top: 4px; }
-.qr-link { font-size: 10px; color: #999; margin-top: 2px; word-break: break-all; }
-.actions { display: grid; gap: 8px; margin-top: 8px; }
+.wm { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(0,0,0,.07); font-size: clamp(12px, 4cqw, 18px); transform: rotate(-35deg); pointer-events: none; white-space: nowrap; }
+.back-title { font-size: clamp(20px, 7.5cqw, 30px); line-height: 1.6; text-align: center; }
+/* 二维码占底部固定区，居中 */
+.qr-row { flex: 2.6; display: flex; align-items: center; justify-content: center; }
+.qr-box { text-align: center; background: #fff; padding: 6px; }
+.qr-box canvas { width: clamp(110px, 34cqw, 150px) !important; height: auto !important; image-rendering: pixelated; }
+.qr-no { font-size: 11px; margin-top: 2px; }
+.actions { max-width: 430px; margin: 10px auto 0; display: grid; gap: 8px; }
+@media print { .actions { display: none; } .cert-wrap { background: #fff; padding: 0; } }
 </style>
