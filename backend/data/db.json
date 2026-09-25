@@ -1,0 +1,25 @@
+{
+  "certs": [
+    {
+      "id": 1,
+      "verifyId": "80bFtTtgk-",
+      "certNo": "JK20268454520001",
+      "name": "上课",
+      "idCard": "421223**********221X",
+      "idCardHash": "680c748d5c746919064358f92295bbf0f3de0ecb5c7d76258884bfbd5522c18f",
+      "birthDate": "2007-03-26",
+      "age": 19,
+      "gender": "男",
+      "photoUrl": "/uploads/2026-09/1790312642781-889842.jpg",
+      "regionName": "广东省",
+      "hospitalName": "深圳市第一人民医院",
+      "category": "食品生产经营",
+      "validFrom": "2026-09-24T05:04:02.787Z",
+      "validTo": "2027-09-23T05:04:02.787Z",
+      "validText": "2026.09.24 - 2027.09.23",
+      "status": "有效",
+      "createdAt": "2026-09-25T05:04:02.787Z"
+    }
+  ],
+  "seq": 1
+}
