@@ -2,10 +2,11 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
 /**
- * 前端构建配置：host 开放局域网 + /api 反代后端
- * 局域网真机联调：VITE_VERIFY_BASE_URL=http://<电脑IP>:5173 npm run dev
+ * 前端构建配置
+ * 后端已迁移至 CloudBase 云函数，不再需要 /api 与 /uploads 反代 Express。
+ * 本地开发如需联调云函数，直接指向 CloudBase 环境即可（VITE_TCB_ENV_ID）。
  */
 export default defineConfig({
   plugins: [vue()],
-  server: { host: '0.0.0.0', port: 5173, proxy: { '/api': 'http://localhost:3000', '/uploads': 'http://localhost:3000' } }
+  server: { host: '0.0.0.0', port: 5173 }
 });

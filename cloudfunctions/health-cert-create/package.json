@@ -1,0 +1,10 @@
+{
+  "name": "health-cert-create",
+  "version": "3.0.0",
+  "description": "健康证签发：照片上传云存储 + 经 PostgREST 写入 PostgreSQL + 生成 verifyId",
+  "main": "index.js",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^2.9.0",
+    "nanoid": "^3.3.7"
+  }
+}

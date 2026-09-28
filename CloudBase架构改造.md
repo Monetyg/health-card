@@ -70,6 +70,26 @@ flowchart TB
 4. 新增环境变量：`VITE_TCB_ENV_ID`（云环境ID）、`VITE_TCB_HTTP_VERIFY`（verify 云函数 HTTP 触发地址）。
 5. 手机断 WiFi 用 4G 扫领证页码验证：微信内走云函数通道，Safari/Chrome 走 HTTPS 通道。
 
-## 6. 回退
+## 6. 实施中的两处偏离说明
+
+实施时发现两处原方案不可行，已按下列方式落地（详见 `CloudBase部署执行手册.md`）：
+
+1. **TTL 索引不可用 → 改定时触发器清理**
+   CloudBase 文档型数据库的索引 API（`UpdateTable` / `MgoKeySchema`）只暴露 `MgoIsUnique`
+   与 `MgoIndexKeys`，**没有 `expireAfterSeconds` 字段**，无法创建 Mongo TTL 索引。
+   改用 `health-cert-cleanup` 云函数（定时触发器每天 03:00，分批删除）+ 签发时惰性清理，
+   效果等价：`verifyExpiresAt` 到期（签发后3天）的记录自动删除。
+
+2. **HTTP 通道改同域路由 → 无需 CORS 白名单**
+   用 CloudBase HTTP 访问服务把 `/api` 路由到 `health-cert-verify`，与静态托管**同源**，
+   普通浏览器 `fetch('/api?verifyId=')` 即可，不存在跨域问题。
+   云函数内仍保留 CORS 响应头（`ALLOW_ORIGIN` 环境变量）与 `OPTIONS` 预检处理作为兜底。
+
+3. **图片方案选定「选项1 公共读 + 永久 CDN」**
+   云存储权限设「所有用户可读」，`getTempFileURL` 换出的链接永久有效，直接落库 `photoUrl`。
+   照片上传在**云函数内**完成（前端以 base64 传参），避免前端匿名登录态配置的复杂度。
+
+## 7. 回退
 
 保留 `免费公网部署方案.md` 海外版，CloudBase 出问题切回 Vercel+Render 即可，二维码需重签。
+`backend/` 目录未删除，作为本地开发与回退参考保留。

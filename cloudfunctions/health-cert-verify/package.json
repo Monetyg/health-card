@@ -1,0 +1,7 @@
+{
+  "name": "health-cert-verify",
+  "version": "3.0.0",
+  "description": "健康证查验：扫码查验，返回脱敏信息，支持 HTTP 触发 + CORS（PostgREST 数据访问）",
+  "main": "index.js",
+  "dependencies": {}
+}

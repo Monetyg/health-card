@@ -1,0 +1,79 @@
+{
+  "$schema": "https://static.cloudbase.net/cli/cloudbaserc.schema.json",
+  "envId": "health-card-d2ga2cvid6561b93d",
+  "version": "2.1",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "health-cert-create",
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "timeout": 20,
+      "memorySize": 256,
+      "installDependency": true,
+      "ignore": ["node_modules", "*.log", ".DS_Store"],
+      "envVariables": {
+        "TCB_ENV_ID": "{{env.TCB_ENV_ID}}",
+        "TCB_API_KEY": "{{env.TCB_API_KEY}}"
+      }
+    },
+    {
+      "name": "health-cert-verify",
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "timeout": 10,
+      "memorySize": 256,
+      "installDependency": true,
+      "ignore": ["node_modules", "*.log", ".DS_Store"],
+      "envVariables": {
+        "ALLOW_ORIGIN": "https://health-card-d2ga2cvid6561b93d-1424804512.tcloudbaseapp.com",
+        "TCB_ENV_ID": "{{env.TCB_ENV_ID}}",
+        "TCB_API_KEY": "{{env.TCB_API_KEY}}"
+      }
+    },
+    {
+      "name": "health-cert-cleanup",
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "timeout": 60,
+      "memorySize": 256,
+      "installDependency": true,
+      "ignore": ["node_modules", "*.log", ".DS_Store"],
+      "envVariables": {
+        "TCB_ENV_ID": "{{env.TCB_ENV_ID}}",
+        "TCB_API_KEY": "{{env.TCB_API_KEY}}"
+      },
+      "triggers": [
+        {
+          "name": "daily-cleanup",
+          "type": "timer",
+          "config": "0 0 3 * * * *"
+        }
+      ]
+    }
+  ],
+  "hosting": [
+    {
+      "name": "health-card-web",
+      "root": "./frontend",
+      "framework": "vite",
+      "installCommand": "npm install",
+      "buildCommand": "npm run build",
+      "outputDir": "dist",
+      "ignore": ["node_modules", ".git", "*.log"],
+      "rewrites": [
+        { "source": "/v/:id", "destination": "/index.html" },
+        { "source": "/cert/:id", "destination": "/index.html" },
+        { "source": "/**", "destination": "/index.html" }
+      ]
+    }
+  ],
+  "gateway": {
+    "routes": [
+      {
+        "path": "/api",
+        "target": "function:health-cert-verify"
+      }
+    ]
+  }
+}

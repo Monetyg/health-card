@@ -1,0 +1,9 @@
+{
+  "health_certs": {
+    "read": false,
+    "write": false,
+    "create": false,
+    "update": false,
+    "delete": false
+  }
+}

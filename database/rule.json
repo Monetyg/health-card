@@ -1,0 +1,6 @@
+{
+  "health_certs": {
+    "read": false,
+    "write": false
+  }
+}

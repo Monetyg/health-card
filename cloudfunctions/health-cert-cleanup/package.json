@@ -1,0 +1,7 @@
+{
+  "name": "health-cert-cleanup",
+  "version": "3.0.0",
+  "description": "定时清理：删除已过查验期(3天)的健康证记录（PostgREST 数据访问）",
+  "main": "index.js",
+  "dependencies": {}
+}

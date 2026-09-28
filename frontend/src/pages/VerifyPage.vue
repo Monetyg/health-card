@@ -29,11 +29,11 @@
 </template>
 <script setup lang="ts">
 /**
- * 查验页：微信内走 callFunction，非微信走云函数 HTTP 触发
+ * 查验页：统一走 HTTP 访问服务（微信内与普通浏览器一致）
  */
 import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { fetchVerifyInfo, isWechat } from '../cloud/verify';
+import { fetchVerifyInfo } from '../cloud/verify';
 const route = useRoute();
 const verifyId = String(route.params.id || '');
 const d = ref<any>(null);
@@ -41,7 +41,7 @@ const err = ref('');
 const loading = ref(true);
 const imgErr = ref(false);
 /** 当前通道展示，方便排查 */
-const channel = computed(() => (isWechat() ? '微信云函数通道' : 'HTTPS 通道'));
+const channel = computed(() => 'HTTPS 通道');
 /** photoUrl 已是 COS 公开 CDN HTTPS 链接，直接加载 */
 const photoSrc = computed(() => d.value?.photoUrl || '');
 onMounted(async () => {

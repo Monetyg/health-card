@@ -1,0 +1,29 @@
+# 依赖
+node_modules/
+
+# 构建产物
+frontend/dist/
+dist/
+
+# 环境变量（含环境ID等，勿提交）
+.env
+.env.local
+.env.*.local
+
+# 云函数依赖（由云端 installDependency 安装）
+cloudfunctions/*/node_modules/
+
+# 本地数据与上传（已迁移云存储/云数据库，仅作历史留存）
+backend/data/
+backend/uploads/
+
+# 日志与系统文件
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.idea/
+.vscode/
+.env.deploy
